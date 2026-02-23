@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login - Farmacias Comunitarias</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <div class="container">
+    <div class="logo">💊</div>
+    <h2>Farmacias Comunitarias</h2>
+    <p class="subtitulo">Ingresa a tu cuenta</p>
+
+    <input id="email" type="email" placeholder="Correo electrónico"><br><br>
+    <input id="password" type="password" placeholder="Contraseña"><br><br>
+    <button onclick="login()">Ingresar</button>
+
+    <p id="mensaje" style="color:red; font-weight:bold;"></p>
+
+    <p style="font-size:12px; color:#888; margin-top:20px;">
+      Usuarios demo: admin@farmacia.com / cajero@farmacia.com / cliente@farmacia.com<br>
+      Contraseña: 123456
+    </p>
+  </div>
+
+  <script type="module">
+    import { auth, db } from "./firebase-config.js";
+    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    window.login = async function() {
+      const email = document.getElementById("email").value.trim();
+      const pass = document.getElementById("password").value.trim();
+      const msg = document.getElementById("mensaje");
+
+      if (!email || !pass) { msg.textContent = "Completa todos los campos"; return; }
+
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, pass);
+        const uid = cred.user.uid;
+
+        const snap = await getDoc(doc(db, "usuarios", uid));
+        if (!snap.exists()) { msg.textContent = "Usuario no encontrado en base de datos"; return; }
+
+        const rol = snap.data().rol;
+        sessionStorage.setItem("rol", rol);
+        sessionStorage.setItem("nombre", snap.data().nombre);
+        sessionStorage.setItem("uid", uid);
+
+        if (rol === "administrador") window.location = "admin.html";
+        else if (rol === "cajero") window.location = "pos.html";
+        else if (rol === "cliente") window.location = "catalogo.html";
+        else msg.textContent = "Rol no reconocido";
+
+      } catch(e) {
+        msg.textContent = "Correo o contraseña incorrectos";
+      }
+    };
+  </script>
+</body>
+</html>

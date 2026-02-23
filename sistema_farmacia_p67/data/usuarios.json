@@ -1,0 +1,5 @@
+[
+  { "id": 1, "nombre": "Admin", "correo": "admin@gmail.com", "clave": "1234", "rol": "administrador" },
+  { "id": 2, "nombre": "Cajero", "correo": "cajero@gmail.com", "clave": "1234", "rol": "cajero" },
+  { "id": 3, "nombre": "Cliente", "correo": "cliente@gmail.com", "clave": "1234", "rol": "cliente" }
+]
