@@ -1,0 +1,40 @@
+[
+  {
+    "id": 1,
+    "fecha": "2026-02-23T05:02:22.713Z",
+    "producto": "a",
+    "total": 2,
+    "rol": "cajero"
+  },
+  {
+    "id": 2,
+    "fecha": "2026-02-23T05:20:38.525Z",
+    "producto": "weso",
+    "total": 5,
+    "rol": "administrador"
+  },
+  {
+    "id": 3,
+    "fecha": "2026-02-23T05:43:19.549Z",
+    "idPedido": 1,
+    "idProducto": 1,
+    "producto": "Paracetamol 500mg",
+    "cantidad": 5,
+    "precioUnitario": 0.5,
+    "total": 2.5,
+    "atendidoPor": "Cajero",
+    "rol": "cajero"
+  },
+  {
+    "id": 4,
+    "fecha": "2026-02-23T05:43:22.278Z",
+    "idPedido": 2,
+    "idProducto": 2,
+    "producto": "Ibuprofeno 400mg",
+    "cantidad": 5,
+    "precioUnitario": 0.8,
+    "total": 4,
+    "atendidoPor": "Cajero",
+    "rol": "cajero"
+  }
+]

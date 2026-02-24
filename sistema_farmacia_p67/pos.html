@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>POS - Punto de Venta</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <div class="container">
+    <div class="navbar">
+      <span> Farmacias Comunitarias — POS</span>
+      <button onclick="cerrarSesion()" class="btn-link">Cerrar sesión</button>
+    </div>
+
+    <h1>Punto de Venta</h1>
+
+    <div class="seccion">
+      <h3>📋 Pedidos Pendientes</h3>
+      <button onclick="cargarPedidos()">🔄 Actualizar</button>
+      <table>
+        <thead><tr><th>Cliente</th><th>Items</th><th>Total</th><th>Estado</th><th>Acción</th></tr></thead>
+        <tbody id="tablaPedidos"></tbody>
+      </table>
+    </div>
+
+    <div class="seccion">
+      <h3>🖥️ Venta Manual</h3>
+      <input id="productoManual" placeholder="Nombre del producto"><br><br>
+      <input id="precioManual" type="number" placeholder="Precio" min="0"><br><br>
+      <button onclick="ventaManual()">Registrar Venta</button>
+    </div>
+
+    <p id="mensaje" style="font-weight:bold; color:green;"></p>
+    <br>
+    <a href="admin.html">← Volver al panel</a>
+  </div>
+
+  <script type="module">
+    import { auth, db } from "./firebase-config.js";
+    import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { collection, getDocs, addDoc, doc, updateDoc, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    onAuthStateChanged(auth, user => {
+      if (!user) { window.location = "login.html"; return; }
+      const rol = sessionStorage.getItem("rol");
+      if (rol !== "administrador" && rol !== "cajero") { window.location = "login.html"; return; }
+      cargarPedidos();
+    });
+
+    window.cargarPedidos = async function() {
+      const q = query(collection(db, "pedidos"), where("estado", "==", "pendiente"));
+      const snap = await getDocs(q);
+      const tb = document.getElementById("tablaPedidos");
+      tb.innerHTML = "";
+
+      if (snap.empty) { tb.innerHTML = `<tr><td colspan="5">No hay pedidos pendientes</td></tr>`; return; }
+
+      snap.forEach(d => {
+        const p = { id: d.id, ...d.data() };
+        const items = p.items ? p.items.map(i => `${i.nombre} x${i.cantidad}`).join(", ") : "-";
+        tb.innerHTML += `
+          <tr>
+            <td>${p.nombre}</td>
+            <td>${items}</td>
+            <td>$${p.total || 0}</td>
+            <td><span class="badge-pendiente">${p.estado}</span></td>
+            <td><button onclick="despachar('${p.id}', ${p.total || 0})">Despachar</button></td>
+          </tr>`;
+      });
+    };
+
+    window.despachar = async function(id, total) {
+      await updateDoc(doc(db, "pedidos", id), { estado: "despachado" });
+      await addDoc(collection(db, "ventas"), {
+        tipo: "pedido",
+        total,
+        fecha: Timestamp.now()
+      });
+      document.getElementById("mensaje").textContent = "✅ Pedido despachado y venta registrada";
+      cargarPedidos();
+    };
+
+    window.ventaManual = async function() {
+      const producto = document.getElementById("productoManual").value.trim();
+      const precio = Number(document.getElementById("precioManual").value);
+      if (!producto || !precio) { alert("Completa los campos"); return; }
+
+      await addDoc(collection(db, "ventas"), {
+        tipo: "manual",
+        producto,
+        total: precio,
+        fecha: Timestamp.now()
+      });
+      document.getElementById("mensaje").textContent = `✅ Venta de ${producto} por $${precio} registrada`;
+      document.getElementById("productoManual").value = "";
+      document.getElementById("precioManual").value = "";
+    };
+
+    window.cerrarSesion = async function() {
+      await signOut(auth);
+      sessionStorage.clear();
+      window.location = "login.html";
+    };
+  </script>
+</body>
+</html>

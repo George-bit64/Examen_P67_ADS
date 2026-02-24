@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Panel Administrador</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <div class="container">
+    <div class="navbar">
+      <span>Farmacias Comunitarias</span>
+      <span id="userInfo"></span>
+    </div>
+
+    <h1>Panel Administrador</h1>
+    <p>Bienvenido, <b id="nombre"></b></p>
+
+    <div class="menu-grid">
+      <a href="inventario.html" class="menu-card">📦 Inventario</a>
+      <a href="reportes.html" class="menu-card">📊 Reportes</a>
+      <a href="pos.html" class="menu-card">🖥️ POS</a>
+      <a href="catalogo.html" class="menu-card">🛒 Catálogo</a>
+    </div>
+
+    <br>
+    <button onclick="cerrarSesion()" class="btn-secondary">Cerrar sesión</button>
+  </div>
+
+  <script type="module">
+    import { auth } from "./firebase-config.js";
+    import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    onAuthStateChanged(auth, user => {
+      if (!user) { window.location = "login.html"; return; }
+      const rol = sessionStorage.getItem("rol");
+      if (rol !== "administrador") { window.location = "login.html"; return; }
+      document.getElementById("nombre").textContent = sessionStorage.getItem("nombre") || user.email;
+    });
+
+    window.cerrarSesion = async function() {
+      await signOut(auth);
+      sessionStorage.clear();
+      window.location = "login.html";
+    };
+  </script>
+</body>
+</html>
